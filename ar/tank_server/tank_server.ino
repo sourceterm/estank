@@ -140,35 +140,44 @@ void stop()//
 
 ///
 
-char page_header[] = ""
+char page_static[] = ""
   "<!DOCTYPE HTML>"
   "<html>"
   "<head>"
   "<meta charset=utf-8>"
   "<title>shake it</title>"
+  "<style type='text/css'>a {text-decoration: none; }</style>"
   "</head>"
-  "<body>";
+  "<body>"
+  "<table>"
+  "<tr><td>&nbsp;</td><td><a href='1'>&#8593;</a></td></tr>" // up
 
-char page_footer[] = ""
+  "<tr><td>"
+	"<a href='3'>&#8592;</a>" // left 
+  "</td><td>" 
+	"<a href='0'>&#9679;</a>" // stop / circle
+  "</td><td>"
+	"<a href='4'>&#8594;</a>" // right 
+  "</td></tr>"
+  "<tr><td>&nbsp;</td><td><a href='2'>&#8595;</a></td></tr>" // dowa
+  "</table>"
   "</body>"
   "</html>";
   
-char nbsp[] = "&nbsp;";
-String circle_html = "&#9679;";
-String up_html = "&#8593;";
-String down_html = "&#8595;";
-String left_html = "&#8592;";
-
-
+//char nbsp[] = "&nbsp;";
+//String circle_html = "&#9679;";
+//String up_html = "&#8593;";
+//String down_html = "&#8595;";
+//String left_html = "&#8592;";
 String right_html = "&#8594;";
 
-String emp_color = "red";
-String reg_color = "black";
+//String emp_color = "red";
+//String reg_color = "black";
 
-String link_open_part = "<a href='";
-String link_close = "</a>";
+//String link_open_part = "<a href='";
+//String link_close = "</a>";
 
-
+/*
 void serve_page(EthernetClient& client, int mode) {
   // send a standard http response header
   client.println("HTTP/1.1 200 OK");
@@ -204,7 +213,17 @@ void serve_page(EthernetClient& client, int mode) {
   client.println("</table>");
   
   client.println(page_footer);
-  
+}
+*/
+
+void serve_page_static(EthernetClient& client)
+{
+    // send a standard http response header
+  client.println("HTTP/1.1 200 OK");
+  client.println("Content-Type: text/html");
+  client.println();
+ 
+ client.println(page_static); 
 }
 
 // returns desired new mode, or -1 if no new mode requested
@@ -225,7 +244,7 @@ int update_server() {
         // so you can send a reply
         
         if (c == '\n' && currentLineIsBlank) {
-          serve_page(client, curMode);
+          serve_page_static(client);
           break;
         } 
         
