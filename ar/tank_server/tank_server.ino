@@ -150,16 +150,16 @@ char page_static[] = ""
   "</head>"
   "<body>"
   "<table>"
-  "<tr><td>&nbsp;</td><td><a href='1'>&#8593;</a></td></tr>" // up
+  "<tr><td>&nbsp;</td><td><a href='$1'>&#8593;</a></td></tr>" // up
 
   "<tr><td>"
-	"<a href='3'>&#8592;</a>" // left 
+	"<a href='$3'>&#8592;</a>" // left 
   "</td><td>" 
-	"<a href='0'>&#9679;</a>" // stop / circle
+	"<a href='$0'>&#9679;</a>" // stop / circle
   "</td><td>"
-	"<a href='4'>&#8594;</a>" // right 
+	"<a href='$4'>&#8594;</a>" // right 
   "</td></tr>"
-  "<tr><td>&nbsp;</td><td><a href='2'>&#8595;</a></td></tr>" // dowa
+  "<tr><td>&nbsp;</td><td><a href='$2'>&#8595;</a></td></tr>" // down
   "</table>"
   "</body>"
   "</html>";
@@ -226,6 +226,13 @@ void serve_page_static(EthernetClient& client)
  client.println(page_static); 
 }
 
+void serve_page_redirect(EthernetClient& client)
+{
+  client.println("HTTP/1.1 303 See Other");
+  client.println("Location: /");
+  client.println();
+}
+
 // returns desired new mode, or -1 if no new mode requested
 int update_server() {
   int requestedMode = -1;
@@ -235,25 +242,36 @@ int update_server() {
   if (client) {
     // an http request ends with a blank line
     boolean currentLineIsBlank = true;
+    boolean directionRequest = false;
+
     while (client.connected()) {
       if (client.available()) {
         boolean incoming = 0;
         char c = client.read();
-        // if you've gotten to the end of the line (received a newline
+	//Serial.println(c);
+        
+	// if you've gotten to the end of the line (received a newline
         // character) and the line is blank, the http request has ended,
         // so you can send a reply
         
         if (c == '\n' && currentLineIsBlank) {
-          serve_page_static(client);
+          if (directionRequest) {
+            serve_page_redirect(client);
+          } else {
+            serve_page_static(client);
+          }
           break;
         } 
         
         //reads URL string from $ to first blank space
-        if(incoming && c == ' '){ 
+        if(incoming && c == ' '){
+	Serial.println("incoming and SPACE");
           incoming = 0;
         }
         if(c == '$'){ 
+	  Serial.println("DOLLAR SIGN");
           incoming = 1; 
+          c = client.read();
         }
         
         //Checks for the URL string $1 or $2
@@ -261,26 +279,31 @@ int update_server() {
           
           if(c == '0'){
             requestedMode = 0;
+            directionRequest = true;
             Serial.println("REQUESTED 0");
           }
           
           if(c == '1'){
             requestedMode = 1;
+            directionRequest = true;
             Serial.println("REQUESTED 1");
           }
           
           if(c == '2'){
             requestedMode = 2;
+            directionRequest = true;
             Serial.println("REQUESTED 2");
           }
           
           if(c == '3'){
             requestedMode = 3;
+            directionRequest = true;
             Serial.println("REQUESTED 3");
           }
           
           if(c == '4'){
             requestedMode = 4;
+            directionRequest = true;
             Serial.println("REQUESTED 4");
           }
         }
@@ -301,7 +324,12 @@ int update_server() {
     // close the connection:
     client.stop();
   }
-  
+
+if (requestedMode != MODE_NO_CHANGE)
+{ 
+Serial.println("FINAL REQUESTED MODE: ");
+Serial.println(requestedMode); 
+}
   return requestedMode;
 }
 
