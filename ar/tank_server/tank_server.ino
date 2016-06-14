@@ -3,19 +3,23 @@
 #include <SPI.h>
 #include <Ethernet.h>
 
+//
+
+bool driveMotors = true;
+
 ///
 
 // PIN 9 is led on ethernet arduino
 int led = 9;
 
 
-int pinI1=8;//define I1 interface
-int pinI2=11;//define I2 interface 
-int speedpinA=9;//enable motor A
-int pinI3=12;//define I3 interface 
-int pinI4=13;//define I4 interface 
-int speedpinB=10;//enable motor B
-int spead =127;//define the spead of motor
+int pinI1=8;		//define I1 interface
+int pinI2=11;		//define I2 interface 
+int speedpinA=9;	//enable motor A
+int pinI3=12;		//define I3 interface 
+int pinI4=13;		//define I4 interface 
+int speedpinB=10;	//enable motor B
+int spead =127;		//define the spead of motor
 
 byte mac[] = {  
   0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
@@ -57,6 +61,8 @@ void setup_motors() {
   pinMode(pinI3,OUTPUT);
   pinMode(pinI4,OUTPUT);
   pinMode(speedpinB,OUTPUT);
+
+  Serial.println("Setup: Motors are ready");
 }
 
 void setup_serial() {
@@ -89,7 +95,9 @@ void setup() {
   setup_serial();
   setup_leds();
   setup_server();
-  //setup_motors();
+  if (driveMotors) {
+    setup_motors();
+  }
 }
 
 ///
@@ -354,10 +362,15 @@ void loop() {
   if ( (currentMillis - previousMillis >= MODE_UPDATE_INTERVAL) &&
       lastRequestedMode != MODE_NO_CHANGE &&
       curMode != lastRequestedMode &&
-      0 != 0)
+      driveMotors)
   {
     
     curMode = lastRequestedMode;
+
+    { 
+      Serial.println("CHANGING MODE: ");
+      Serial.println(curMode); 
+    }
     
     switch (curMode) {
       case 0:
@@ -380,6 +393,9 @@ void loop() {
       right();
       break;
     }
+
+  delay(2000);
+  stop();
   }
   
   
