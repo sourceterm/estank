@@ -6,3 +6,7 @@ https://www.arduino.cc/en/Main/ArduinoBoardEthernet
 Arduino Ethernet Shield Tutorial (server code):
 
 http://www.instructables.com/id/Arduino-Ethernet-Shield-Tutorial/step4/Server/
+
+
+Maybe the problem with Ethernet Arduino & Motor Shield:
+http://www.seeedstudio.com/forum/viewtopic.php?p=14639
