@@ -10,3 +10,10 @@ http://www.instructables.com/id/Arduino-Ethernet-Shield-Tutorial/step4/Server/
 
 Maybe the problem with Ethernet Arduino & Motor Shield:
 http://www.seeedstudio.com/forum/viewtopic.php?p=14639
+
+
+6/17/2016
+
+Arduino Ethernet shows up at /dev/tty.usbserial-AH03HD9C
+Arduino Uno at /dev/tty.usbmodem14241
+

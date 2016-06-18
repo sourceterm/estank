@@ -1,25 +1,19 @@
 ///
 
+// This is for the server that controls I2C and Ethernet/Wifi communication
+// Hardware: Ethernet Arduino
+#define TANK_WIRE_SERVER true
+
+#include "tank_shared.h"
 #include <SPI.h>
 #include <Ethernet.h>
-
-//
-
-bool driveMotors = true;
+#include <Wire.h>
 
 ///
 
-// PIN 9 is led on ethernet arduino
-int led = 9;
+// PIN 13 is led on arduino uno
+int led = 13;
 
-
-int pinI1=8;		//define I1 interface
-int pinI2=11;		//define I2 interface 
-int speedpinA=9;	//enable motor A
-int pinI3=12;		//define I3 interface 
-int pinI4=13;		//define I4 interface 
-int speedpinB=10;	//enable motor B
-int spead =127;		//define the spead of motor
 
 byte mac[] = {  
   0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
@@ -27,14 +21,6 @@ byte mac[] = {
 EthernetServer server(80);
 
 ///
-
-const int MODE_NO_CHANGE = 5; // positive for i2c simplicity
-const int MODE_DEFAULT = 0;
-const int MODE_STOP = 0;
-const int MODE_FORWARD = 1;
-const int MODE_BACKWARD = 2;
-const int MODE_LEFT = 3;
-const int MODE_RIGHT = 4;
 
 int curMode = MODE_DEFAULT;
 int lastRequestedMode = MODE_DEFAULT;
@@ -54,17 +40,6 @@ void setup_leds() {
     pinMode(led, OUTPUT);
 }
 
-void setup_motors() {
-  pinMode(pinI1,OUTPUT);
-  pinMode(pinI2,OUTPUT);
-  pinMode(speedpinA,OUTPUT);
-  pinMode(pinI3,OUTPUT);
-  pinMode(pinI4,OUTPUT);
-  pinMode(speedpinB,OUTPUT);
-
-  Serial.println("Setup: Motors are ready");
-}
-
 void setup_serial() {
    // Open serial communications and wait for port to open:
   Serial.begin(9600);
@@ -73,7 +48,7 @@ void setup_serial() {
    }
 }
 
-void setup_server() {
+void setup_eth_server() {
     // start the Ethernet connection and the server:
   
   // start the Ethernet connection:
@@ -88,65 +63,31 @@ void setup_server() {
   Serial.print("server is at ");
   Serial.println(Ethernet.localIP());
 }
-  
-// the setup routine runs once when you press reset:
+
+void setup_wire_server() {
+  Wire.begin();  // join i2c bus (address optional for master)
+}
+
+void wire_send_byte(byte toSend)
+{
+  Wire.beginTransmission(WIRE_CLIENT_ADDR);
+  Wire.write(toSend);
+  Wire.endTransmission();
+
+}
+ 
+// the setup routine runs once when you press reset
 void setup() {
-  Serial.println("hello world");
+  Serial.println("server: hello world");
   setup_serial();
   setup_leds();
-  setup_server();
-  if (driveMotors) {
-    setup_motors();
-  }
+  setup_eth_server();
+  setup_wire_server();
 }
 
 ///
 
-void forward()
-{
-     analogWrite(speedpinA,spead);//input a simulation value to set the speed
-     analogWrite(speedpinB,spead);
-     digitalWrite(pinI4,HIGH);//turn DC Motor B move clockwise
-     digitalWrite(pinI3,LOW);
-     digitalWrite(pinI2,LOW);//turn DC Motor A move anticlockwise
-     digitalWrite(pinI1,HIGH);
-}
-void backward()//
-{
-     analogWrite(speedpinA,spead);//input a simulation value to set the speed
-     analogWrite(speedpinB,spead);
-     digitalWrite(pinI4,LOW);//turn DC Motor B move anticlockwise
-     digitalWrite(pinI3,HIGH);
-     digitalWrite(pinI2,HIGH);//turn DC Motor A move clockwise
-     digitalWrite(pinI1,LOW);
-}
-void left()//
-{
-     analogWrite(speedpinA,spead);//input a simulation value to set the speed
-     analogWrite(speedpinB,spead);
-     digitalWrite(pinI4,HIGH);//turn DC Motor B move clockwise
-     digitalWrite(pinI3,LOW);
-     digitalWrite(pinI2,HIGH);//turn DC Motor A move clockwise
-     digitalWrite(pinI1,LOW);
-}
-void right()//
-{
-     analogWrite(speedpinA,spead);//input a simulation value to set the speed
-     analogWrite(speedpinB,spead);
-     digitalWrite(pinI4,LOW);//turn DC Motor B move anticlockwise
-     digitalWrite(pinI3,HIGH);
-     digitalWrite(pinI2,LOW);//turn DC Motor A move clockwise
-     digitalWrite(pinI1,HIGH);
-}
-void stop()//
-{
-     digitalWrite(speedpinA,LOW);// Unenble the pin, to stop the motor. this should be done to avid damaging the motor. 
-     digitalWrite(speedpinB,LOW);
-     delay(1000);
- 
-}
-
-///
+// TODO - hardcoded modes in this static html
 
 char page_static[] = ""
   "<!DOCTYPE HTML>"
@@ -333,11 +274,12 @@ int update_server() {
     client.stop();
   }
 
-if (requestedMode != MODE_NO_CHANGE)
-{ 
-Serial.println("FINAL REQUESTED MODE: ");
-Serial.println(requestedMode); 
-}
+  if (requestedMode != MODE_NO_CHANGE)
+  { 
+    Serial.println("FINAL REQUESTED MODE: ");
+    Serial.println(requestedMode); 
+  }
+
   return requestedMode;
 }
 
@@ -349,87 +291,31 @@ void blink_me() {
 }
 
 
-void loop() {
-
+void loop_server() {
   
   int newMode = curMode;
   
   lastRequestedMode = update_server();
   
-  
   unsigned long currentMillis = millis();
 
   if ( (currentMillis - previousMillis >= MODE_UPDATE_INTERVAL) &&
       lastRequestedMode != MODE_NO_CHANGE &&
-      curMode != lastRequestedMode &&
-      driveMotors)
+      curMode != lastRequestedMode)
   {
     
     curMode = lastRequestedMode;
 
     { 
-      Serial.println("CHANGING MODE: ");
+      Serial.println("SERVER: CHANGING MODE: ");
       Serial.println(curMode); 
     }
-    
-    switch (curMode) {
-      case 0:
-      stop();
-      break;
-      
-      case 1:
-      forward();
-      break;
-      
-      case 2:
-      backward();
-      break;
-      
-      case 3:
-      left();
-      break;
-      
-      case 4:
-      right();
-      break;
-    }
 
-  delay(2000);
-  stop();
+    wire_send_byte(curMode);
   }
-  
-  
 }
 
+void loop() {
+  loop_server();
+}
 
-
-///
-// credits, etc
-
-// portions derived from:
-
-/*
-  Web Server Demo
-  thrown together by Randy Sarafan
- 
- Allows you to turn on and off an LED by entering different urls.
- 
- To turn it on:
- http://your-IP-address/$1
- 
- To turn it off:
- http://your-IP-address/$2
- 
- Circuit:
- * Ethernet shield attached to pins 10, 11, 12, 13
- * Connect an LED to pin D2 and put it in series with a 220 ohm resistor to ground
- 
- Based almost entirely upon Web Server by Tom Igoe and David Mellis
- 
- Edit history: 
- created 18 Dec 2009
- by David A. Mellis
- modified 4 Sep 2010
- by Tom Igoe
- 
- */

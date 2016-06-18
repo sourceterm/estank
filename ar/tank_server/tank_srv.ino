@@ -1,7 +1,9 @@
 ///
 
+#include "tank_shared.h"
 #include <SPI.h>
 #include <Ethernet.h>
+#include <Wire.h>
 
 //
 
@@ -87,6 +89,38 @@ void setup_server() {
   server.begin();
   Serial.print("server is at ");
   Serial.println(Ethernet.localIP());
+}
+
+const int WIRE_CLIENT_ADDR = 4; 
+
+void setup_wire_client() {
+  Wire.begin(WIRE_CLIENT_ADDR);                // join i2c bus with address #4
+  Wire.onReceive(wire_receieve_client); // register event
+}
+
+void setup_wire_server() {
+  Wire.begin();  // join i2c bus (address optional for master)
+}
+
+byte last_received_byte = MODE_DEFAULT;
+
+void wire_recieve_client(int howMany)
+{
+  while(1 < Wire.available()) // loop through all but the last
+  {
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c);         // print the character
+  }
+  int x = Wire.read();    // receive byte as an integer
+  Serial.println(x);         // print the integer
+}
+
+void wire_send_byte(byte toSend)
+{
+  Wire.beginTransmission(WIRE_CLIENT_ADDR);
+  Wire.write(toSend);
+  Wire.endTransmission();
+
 }
   
 // the setup routine runs once when you press reset:
