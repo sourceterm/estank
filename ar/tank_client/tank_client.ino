@@ -182,7 +182,7 @@ void loop_client() {
 
   if ( (currentMillis - previousMillis >= MODE_UPDATE_INTERVAL) &&
       lastRequestedMode != MODE_NO_CHANGE &&
-      curMode != lastRequestedMode &&
+//      curMode != lastRequestedMode &&
       driveMotors)
   {
    
