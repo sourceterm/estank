@@ -1,8 +1,9 @@
 ///
 
-// This is for the server that controls I2C and Ethernet/Wifi communication
+// This FILE is for the server that controls I2C and Ethernet/Wifi communication
 // Hardware: Ethernet Arduino
-#define TANK_WIRE_SERVER true
+
+///
 
 #include "tank_shared.h"
 #include <SPI.h>
@@ -99,16 +100,16 @@ char page_static[] = ""
   "</head>"
   "<body>"
   "<table>"
-  "<tr><td>&nbsp;</td><td><a href='$1'>&#8593;</a></td></tr>" // up
+  "<tr><td>&nbsp;</td><td><a href='$2'>&#8593;</a></td></tr>" // up
 
   "<tr><td>"
-	"<a href='$3'>&#8592;</a>" // left 
+	"<a href='$4'>&#8592;</a>" // left 
   "</td><td>" 
 	"<a href='$0'>&#9679;</a>" // stop / circle
   "</td><td>"
-	"<a href='$4'>&#8594;</a>" // right 
+	"<a href='$3'>&#8594;</a>" // right 
   "</td></tr>"
-  "<tr><td>&nbsp;</td><td><a href='$2'>&#8595;</a></td></tr>" // down
+  "<tr><td>&nbsp;</td><td><a href='$1'>&#8595;</a></td></tr>" // down
   "</table>"
   "</body>"
   "</html>";
